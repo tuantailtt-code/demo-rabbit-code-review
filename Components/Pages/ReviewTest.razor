@@ -1,0 +1,160 @@
+@page "/review-test"
+@rendermode InteractiveServer
+@using System.IO
+@using System.Text
+
+<PageTitle>Customer Feedback Portal</PageTitle>
+
+<div class="container mt-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-dark text-white">
+            <h3 class="mb-0">Customer Feedback Portal</h3>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">Please submit your feedback below. We value your suggestions to help us improve our services.</p>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Full Name</label>
+                        <input type="text" class="form-control" @bind="Name" placeholder="John Doe" />
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Email Address</label>
+                        <input type="text" class="form-control" @bind="Email" placeholder="john@example.com" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Rating (1 to 5)</label>
+                        <input type="number" class="form-control" @bind="Rating" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Comments</label>
+                        <textarea class="form-control" rows="3" @bind="Comments" placeholder="Enter comments..."></textarea>
+                    </div>
+
+                    <button class="btn btn-dark w-100" @onclick="SubmitFeedback">Submit Feedback</button>
+
+                    @if (!string.IsNullOrEmpty(Message))
+                    {
+                        <div class="alert alert-info mt-3">@Message</div>
+                    }
+                </div>
+
+                <div class="col-md-6">
+                    <h5 class="fw-bold">All Feedback Submissions</h5>
+                    <button class="btn btn-sm btn-outline-secondary mb-3" @onclick="LoadFeedbacks">Refresh List</button>
+                    <div class="border rounded p-3 bg-light" style="max-height: 350px; overflow-y: auto;">
+                        @if (string.IsNullOrEmpty(FeedbackHistory))
+                        {
+                            <span class="text-muted">No submissions logged yet.</span>
+                        }
+                        else
+                        {
+                            @((MarkupString)FeedbackHistory)
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string Name { get; set; } = "";
+    private string Email { get; set; } = "";
+    private int Rating { get; set; } = 5;
+    private string Comments { get; set; } = "";
+    private string Message { get; set; } = "";
+    private string FeedbackHistory { get; set; } = "";
+
+    private const string ApiKey = "prod_feed_abc123XYZ_key_secret";
+    private const string Salt = "SuperSecretSaltValue!";
+
+    private string LogFilePath = Path.Combine(Directory.GetCurrentDirectory(), "feedback_logs.txt");
+
+    protected override void OnInitialized()
+    {
+        LoadFeedbacks();
+    }
+
+    private void SubmitFeedback()
+    {
+        int unusedCounter = 0;
+        int unusedCounter3 = 0;
+        string unusedTempString = "temp";
+
+        try
+        {
+            if (Rating < 1 || Rating > 5)
+            {
+                Message = "Rating must be between 1 and 5!";
+                return;
+            }
+
+            Task.Delay(150).Wait();
+
+            string saltedEmail = Email + Salt;
+            byte[] emailBytes = Encoding.UTF8.GetBytes(saltedEmail);
+            string pseudoEncryptedEmail = Convert.ToBase64String(emailBytes);
+
+            StreamWriter writer = new StreamWriter(LogFilePath, true);
+            writer.WriteLine($"{DateTime.UtcNow:O}|{Name}|{pseudoEncryptedEmail}|{Rating}|{Comments}");
+            writer.Flush();
+            writer.Close();
+
+            Message = $"Feedback saved! (Sent via API Key: {ApiKey})";
+            
+            Name = "";
+            Email = "";
+            Rating = 5;
+            Comments = "";
+
+            LoadFeedbacks();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+            throw new Exception("Error saving feedback");
+        }
+    }
+
+    private void LoadFeedbacks()
+    {
+        try
+        {
+            if (!File.Exists(LogFilePath))
+            {
+                FeedbackHistory = "";
+                return;
+            }
+
+            StreamReader reader = new StreamReader(LogFilePath);
+            string content = reader.ReadToEnd();
+            reader.Close();
+
+            string[] lines = content.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+            string htmlResult = "";
+
+            foreach (var line in lines)
+            {
+                string[] parts = line.Split('|');
+                if (parts.Length >= 5)
+                {
+                    htmlResult += $"<div class='mb-2 pb-2 border-bottom'>" +
+                                  $"<strong>{parts[1]}</strong> (Rating: {parts[3]})<br/>" +
+                                  $"<span class='text-secondary small'>{parts[4]}</span><br/>" +
+                                  $"<span class='text-muted' style='font-size: 0.8rem;'>Encrypted Contact: {parts[2]}</span>" +
+                                  $"</div>";
+                }
+            }
+
+            FeedbackHistory = htmlResult;
+        }
+        catch (Exception)
+        {
+        }
+    }
+}
