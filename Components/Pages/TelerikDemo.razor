@@ -1,0 +1,37 @@
+@page "/telerik-demo"
+
+<PageTitle>Telerik UI Demo (Offline)</PageTitle>
+
+<div class="container mt-5">
+    <div class="card shadow border-0">
+        <div class="card-body p-5 text-center">
+            <h1 class="display-4 text-warning mb-3">
+                <span class="bi bi-exclamation-triangle-fill"></span> Telerik UI is Offline
+            </h1>
+            <p class="lead text-secondary mb-4">
+                The standard Blazor project has been initialized and is running successfully! However, Telerik UI components are currently commented out to prevent build failures.
+            </p>
+            
+            <div class="alert alert-info text-start mx-auto" style="max-width: 600px;">
+                <h5 class="alert-heading"><span class="bi bi-info-circle-fill"></span> How to enable Telerik UI for Blazor:</h5>
+                <ol class="mb-0 mt-2">
+                    <li>Open <code>nuget.config</code> in the root of the project.</li>
+                    <li>Replace the username and password placeholders (<code>%TELERIK_USERNAME%</code> and <code>%TELERIK_PASSWORD%</code>) with your actual Telerik account credentials.</li>
+                    <li>Uncomment the code in the following files:
+                        <ul>
+                            <li><code>demo-rabbit-code-review.csproj</code> (the Telerik package reference)</li>
+                            <li><code>Components/_Imports.razor</code> (Telerik using statements)</li>
+                            <li><code>Program.cs</code> (Telerik service registration)</li>
+                            <li><code>Components/App.razor</code> (Telerik stylesheet and scripts)</li>
+                            <li><code>Components/Layout/MainLayout.razor</code> (wrap the layout body in <code>&lt;TelerikRootComponent&gt;</code>)</li>
+                            <li>Restore the original <code>TelerikDemo.razor</code> code to display the components.</li>
+                        </ul>
+                    </li>
+                    <li>Run <code>dotnet build</code> or <code>dotnet run</code> to restore the packages and start the project.</li>
+                </ol>
+            </div>
+            
+            <a href="/" class="btn btn-primary mt-4 px-4 py-2">Go back to Home</a>
+        </div>
+    </div>
+</div>
