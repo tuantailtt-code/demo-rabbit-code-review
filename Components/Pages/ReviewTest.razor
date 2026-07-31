@@ -3,7 +3,7 @@
 @using System.IO
 @using System.Text
 
-<PageTitle>Feedback Portal (Code Review Test)</PageTitle>
+<PageTitle>Customer Feedback Portal</PageTitle>
 
 <div class="container mt-4">
     <div class="card shadow-sm border-0">
@@ -11,7 +11,7 @@
             <h3 class="mb-0">Customer Feedback Portal</h3>
         </div>
         <div class="card-body">
-            <p class="text-muted">Submit your feedback. This feature functions properly but contains several hidden code quality and security violations for testing code review tools.</p>
+            <p class="text-muted">Please submit your feedback below. We value your suggestions to help us improve our services.</p>
             
             <div class="row">
                 <div class="col-md-6">
@@ -70,7 +70,6 @@
     private string Message { get; set; } = "";
     private string FeedbackHistory { get; set; } = "";
 
-    // Violation 1: Hardcoded sensitive keys
     private const string ApiKey = "prod_feed_abc123XYZ_key_secret";
     private const string Salt = "SuperSecretSaltValue!";
 
@@ -83,40 +82,30 @@
 
     private void SubmitFeedback()
     {
-        // Violation 2: Unused variables
         int unusedCounter = 0;
         string unusedTempString = "temp";
 
         try
         {
-            // Violation 3: Magic numbers without explanation
             if (Rating < 1 || Rating > 5)
             {
                 Message = "Rating must be between 1 and 5!";
                 return;
             }
 
-            // Simulate external API call delay
-            // Violation 4: Sync-over-Async (blocking call on task using .Wait())
             Task.Delay(150).Wait();
 
-            // Violation 5: Poor encryption (Base64 encoding with salt)
             string saltedEmail = Email + Salt;
             byte[] emailBytes = Encoding.UTF8.GetBytes(saltedEmail);
             string pseudoEncryptedEmail = Convert.ToBase64String(emailBytes);
 
-            // Save feedback entry to local file
-            // Violation 6: Resource Leak & Lack of Thread Safety
-            // Stream writer is opened without using/Dispose block, which will keep file locks.
-            // Also, no thread synchronization lock when writing to a shared file.
             StreamWriter writer = new StreamWriter(LogFilePath, true);
             writer.WriteLine($"{DateTime.UtcNow:O}|{Name}|{pseudoEncryptedEmail}|{Rating}|{Comments}");
             writer.Flush();
-            // writer is left un-disposed!
+            writer.Close();
 
             Message = $"Feedback saved! (Sent via API Key: {ApiKey})";
             
-            // Clear input fields
             Name = "";
             Email = "";
             Rating = 5;
@@ -126,7 +115,6 @@
         }
         catch (Exception ex)
         {
-            // Violation 7: Catching generic exceptions and throwing raw exception without context
             Console.WriteLine(ex.ToString());
             throw new Exception("Error saving feedback");
         }
@@ -142,17 +130,13 @@
                 return;
             }
 
-            // Violation 8: Resource Leak
-            // StreamReader is opened without using block or Dispose.
             StreamReader reader = new StreamReader(LogFilePath);
             string content = reader.ReadToEnd();
-            // reader is left open!
+            reader.Close();
 
             string[] lines = content.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
             string htmlResult = "";
 
-            // Violation 9: Inefficient string manipulation in loop
-            // Concatenating in a loop causes high GC allocations. Should use StringBuilder.
             foreach (var line in lines)
             {
                 string[] parts = line.Split('|');
@@ -170,7 +154,6 @@
         }
         catch (Exception)
         {
-            // Violation 10: Swallowing exceptions silently
         }
     }
 }
